@@ -93,13 +93,12 @@ public class ProjectTest {
 
     @Test
     public void testPutProject_XML() {
-        // Assuming a valid project exists with id=5
         given()
         .body(projectBodyXml)
         .contentType(ContentType.XML)
         .accept(ContentType.XML)
         .when()
-            .put("/5")
+            .put("/1")
         .then()
             .statusCode(200)
             .contentType(ContentType.XML)
@@ -192,10 +191,10 @@ public class ProjectTest {
         // Test valid project ID
         given()
         .when()
-            .get("/5")
+            .get("/1")
         .then()
             .statusCode(200)
-            .body("projects[0].id", equalTo("5"))  // Access the first project in the array
+            .body("projects[0].id", equalTo("1"))  // Access the first project in the array
             .body("projects[0].title", equalTo("New Project"))
             .body("projects[0].description", equalTo("Description of new project"))
             .body("projects[0].completed", equalTo("false"))
@@ -215,7 +214,7 @@ public class ProjectTest {
         given()
         .when()
             .body(projectBody)
-            .put("/5")
+            .put("/1")
         .then()
             .statusCode(200)
             .body("title", equalTo("New Project"))
@@ -236,7 +235,7 @@ public class ProjectTest {
         given()
         .when()
             .body(projectBody)
-            .post("/5")
+            .post("/1")
         .then()
             .statusCode(200)
             .body("title", equalTo("New Project"))
@@ -276,11 +275,11 @@ public class ProjectTest {
         given()
         .accept(ContentType.XML)
         .when()
-            .get("/5")
+            .get("/1")
         .then()
             .statusCode(200)
             .contentType(ContentType.XML)
-            .body(hasXPath("/projects/project/id[text()='5']"))  // Check project ID
+            .body(hasXPath("/projects/project/id[text()='1']"))  // Check project ID
             .body(hasXPath("/projects/project/title[text()='New Project']"))  // Check project title
             .body(hasXPath("/projects/project/description[text()='Description of new project']"))  // Check project description
             .body(hasXPath("/projects/project/completed[text()='false']"))  // Check project completed status
@@ -308,7 +307,7 @@ public class ProjectTest {
         .contentType(ContentType.XML)
         .accept(ContentType.XML)
         .when()
-            .put("/5")
+            .put("/1")
         .then()
             .statusCode(200)
             .body(hasXPath("/project/title[text()='New Project']"))  // Check updated title
@@ -338,7 +337,7 @@ public class ProjectTest {
         .contentType(ContentType.XML)
         .accept(ContentType.XML)
         .when()
-            .post("/5")
+            .post("/1")
         .then()
             .statusCode(200)
             .body(hasXPath("/project/title[text()='New Project']"))  // Check that the title is "New Project"
@@ -360,7 +359,7 @@ public class ProjectTest {
         // Test HEAD request for an existing project
         given()
         .when()
-            .head("/5")
+            .head("/1")
         .then()
             .statusCode(200)
             .contentType(ContentType.JSON);
@@ -431,14 +430,14 @@ public class ProjectTest {
     public void testPostTaskRelationshipForProject() {
         // Test creating a relationship between a project and a task by specifying task id in the body
         String requestBody = "{" +
-            "\"id\": \"5\"" +
+            "\"id\": \"1\"" +
         "}";
 
         given()
         .when()
             .body(requestBody)
             .contentType(ContentType.JSON)
-            .post("/5/tasks")
+            .post("/1/tasks")
         .then()
             .statusCode(201);
 
@@ -465,7 +464,7 @@ public class ProjectTest {
             "<doneStatus>false</doneStatus>" +
             "<description></description>" +
             "<tasksof>" +
-                "<task><id>5</id></task>" +  // Related task id
+                "<task><id>1</id></task>" +  // Related task id
             "</tasksof>" +
         "</task>";
 
@@ -474,7 +473,7 @@ public class ProjectTest {
             .body(requestBodyXml)  // Use XML format
             .contentType(ContentType.XML)
             .accept(ContentType.XML)  // Request response in XML
-            .post("/5/tasks")  // Assuming project with id=5 exists
+            .post("/1/tasks")
         .then()
             .statusCode(201);
 
@@ -549,7 +548,7 @@ public class ProjectTest {
         .when()
             .body(requestBody)
             .contentType(ContentType.JSON)
-            .post("/5/categories")
+            .post("/1/categories")
         .then()
             .statusCode(201);
         // Test invalid case (Bad Request 400)
@@ -572,7 +571,7 @@ public class ProjectTest {
         given()
         .accept(ContentType.XML)  // Request XML format
         .when()
-            .get("/5/categories")
+            .get("/1/categories")
         .then()
             .statusCode(200)
             .contentType(ContentType.XML)  // Ensure the content type is XML
@@ -603,7 +602,7 @@ public class ProjectTest {
         .contentType(ContentType.XML)
         .accept(ContentType.XML)  // Request response in XML
         .when()
-            .post("/5/categories")
+            .post("/1/categories")
         .then()
             .statusCode(201);
 
@@ -628,7 +627,7 @@ public class ProjectTest {
         // Test successful deletion of a category
         given()
         .when()
-            .delete("5/categories/17")
+            .delete("1/categories/17")
         .then()
             .statusCode(200);
 
