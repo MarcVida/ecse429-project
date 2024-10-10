@@ -1,5 +1,7 @@
 # ecse429-project-partA
 
+### Excel session notes are under ExploratorySessionNotes -> {Todos}SessionFiles directory
+
 ## Tool Versions
 - **Gradle:** 8.8
 - **Groovy:** 3.0.21
