@@ -1,6 +1,6 @@
 # ecse429-project-partA
 
-### Excel session notes are under ExploratorySessionNotes -> {Todos}SessionFiles directory
+### Excel session notes are in the subdirectories of ExploratorySessionNotes
 
 ## Tool Versions
 - **Gradle:** 8.8
