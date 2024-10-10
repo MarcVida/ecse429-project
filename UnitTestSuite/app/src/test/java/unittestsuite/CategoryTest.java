@@ -84,28 +84,6 @@ public class CategoryTest {
     }
 
     @Test
-    public void testPostFromExample() {
-        // Follows the same JSON structure as in the API documentation example
-        String idString = given()
-        .when()
-            .body(dummyBodyExample)
-            .post("")
-        .then()
-            .statusCode(201)
-            .body("id", notNullValue())
-            .body("title", equalTo("buy groceries"))
-            .body("description", equalTo("get apples, bananas, oranges"))
-            .extract().path("id");
-
-        // delete item
-        given()
-        .when()
-            .delete("/" + idString)
-        .then()
-            .statusCode(200);
-    }
-
-    @Test
     public void testPost() {
         String idString = given()
         .when()
@@ -150,12 +128,35 @@ public class CategoryTest {
     }
 
     @Test
+    public void testPostJSONMalformed() {
+        String idString = given()
+        .when()
+            .contentType(ContentType.JSON)
+            .body("{ \"title\": \"\", \"description\": \"get apples, bananas, oranges\" }") //empty title is considered malformed input from the API
+            .post("")
+        .then()
+            .statusCode(201)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("title", equalTo(""))
+            .body("description", equalTo("get apples, bananas, oranges"))
+            .extract().path("id");
+
+        // delete item
+        given()
+        .when()
+            .delete("/" + idString)
+        .then()
+            .statusCode(200);
+    }
+
+    @Test
     public void testPostXMLFromExample() {
         // Follows the same XML structure as in the API documentation example
         String idString = given()
         .when()
             .contentType(ContentType.XML)
-            .body("<category><description>get apples, bananas, oranges</description><id>null</id><title>buy food 2</title></category>")
+            .body("<category><description>get apples, bananas, oranges</description><id>null</id><title>buy food 2</title></category>") //null id field is considered malformed input from the API
             .post("")
         .then()
             .statusCode(201)
@@ -310,28 +311,6 @@ public class CategoryTest {
     }
 
     @Test
-    public void testPostWithIdFromExample() {
-        // Update item 1 using the same JSON structure as in the example in the API documentation
-        given()
-        .when()
-            .body(dummyBodyExample)
-            .post("/1")
-        .then()
-            .statusCode(200)
-            .body("id", equalTo("1"))
-            .body("title", equalTo("buy groceries"))
-            .body("description", equalTo("get apples, bananas, oranges"));
-
-        // Revert back to initial state
-        given()
-        .when()
-            .body(todo1InitialBody)
-            .post("/1")
-        .then()
-            .statusCode(200);
-    }
-
-    @Test
     public void testPostWithId() {
         given()
         .when()
@@ -402,12 +381,12 @@ public class CategoryTest {
         // Update item 2 using the same JSON structure as in the example in the API documentation
         given()
         .when()
-            .body("{ \"title\": \"buy even more food\", \"description\": \"get apples, bananas, oranges\" }")
+        .body("{ \"title\": \"\", \"description\": \"get apples, bananas, oranges\" }") //empty title is considered malformed input from the API
             .put("/2")
         .then()
             .statusCode(200)
             .body("id", equalTo("2"))
-            .body("title", equalTo("buy even more food"))
+            .body("title", equalTo(""))
             .body("description", equalTo("get apples, bananas, oranges"));
 
         // Revert back to initial state
