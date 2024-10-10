@@ -132,22 +132,22 @@ public class CategoryTest {
         String idString = given()
         .when()
             .contentType(ContentType.JSON)
-            .body("{ \"title\": \"\", \"description\": \"get apples, bananas, oranges\" }") //empty title is considered malformed input from the API
+            .body("{ \"title\": \"\", \"description\": \"get apples, bananas, oranges\" }") 
             .post("")
         .then()
-            .statusCode(201)
-            .contentType(ContentType.JSON)
-            .body("id", notNullValue())
-            .body("title", equalTo(""))
-            .body("description", equalTo("get apples, bananas, oranges"))
+            .statusCode(400) //an empty title should be considered as malformed input from the API
+            .body("errorMessages", notNullValue())
+            .body(not(containsString("java.lang."))) // The error message should be user friendly
             .extract().path("id");
 
-        // delete item
-        given()
-        .when()
-            .delete("/" + idString)
-        .then()
-            .statusCode(200);
+        if(idString != null){ //only attempt to delete the resource if it was incorrectly created in the first place
+            // delete item
+            given()
+            .when()
+                .delete("/" + idString)
+            .then()
+                .statusCode(200);
+        }
     }
 
     @Test
@@ -156,7 +156,7 @@ public class CategoryTest {
         String idString = given()
         .when()
             .contentType(ContentType.XML)
-            .body("<category><description>get apples, bananas, oranges</description><id>null</id><title>buy food 2</title></category>") //null id field is considered malformed input from the API
+            .body("<category><description>get apples, bananas, oranges</description><id>null</id><title>buy food 2</title></category>") //null id field is incorrectly considered as malformed input from the API
             .post("")
         .then()
             .statusCode(201)
@@ -381,13 +381,12 @@ public class CategoryTest {
         // Update item 2 using the same JSON structure as in the example in the API documentation
         given()
         .when()
-        .body("{ \"title\": \"\", \"description\": \"get apples, bananas, oranges\" }") //empty title is considered malformed input from the API
+            .body("{ \"title\": \"\", \"description\": \"get apples, bananas, oranges\" }") 
             .put("/2")
         .then()
-            .statusCode(200)
-            .body("id", equalTo("2"))
-            .body("title", equalTo(""))
-            .body("description", equalTo("get apples, bananas, oranges"));
+            .statusCode(400) //an empty title should be considered as malformed input from the API
+            .body("errorMessages", notNullValue())
+            .body(not(containsString("java.lang."))); // The error message should be user friendly
 
         // Revert back to initial state
         given()
@@ -640,7 +639,7 @@ public class CategoryTest {
         .then()
             .statusCode(200)
             .body("size()", greaterThan(0))
-            .body("categories.size()", equalTo(0));
+            .body("categories.size()", equalTo(0)); //the API lists all the categories when it should list none 
     }
 
     @Test
