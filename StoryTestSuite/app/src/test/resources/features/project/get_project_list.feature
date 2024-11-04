@@ -26,6 +26,6 @@ Feature: Get Project(s)
     Then no project is found, and an error message is returned
 
     Examples:
-      | id  |
+      | id   |
       | 999  |
       | 1009 |

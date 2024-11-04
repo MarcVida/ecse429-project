@@ -14,7 +14,7 @@ Feature: Create a Project
     Examples:
       | title         | completed | active | description  | taskIds |
       | Team Project  | false     | true   |              | 1, 2    |
-      | Team Project  | true      | false  | new project  | 1, 2    |
+      | Team Project2 | true      | false  | new project  | 1, 2    |
 
 
   Scenario Outline: Create a project with minimal data (Alternate flow)
@@ -24,7 +24,7 @@ Feature: Create a Project
   Examples:
     | title          | active |
     | Simple Project | true   |
-    | Simple Project | false  |
+    | Big Project    | false  |
 
   Scenario Outline: Create a project with missing or invalid fields (Error flow)
     When the user tries to create a project with invalid field "<fieldName>" and value "<fieldValue>"
