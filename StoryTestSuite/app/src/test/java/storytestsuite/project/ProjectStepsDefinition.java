@@ -109,7 +109,8 @@ public class ProjectStepsDefinition {
     @Then("no project is found, and an error message is returned")
     public void no_project_is_found_and_an_error_message_is_returned() {
         lastResponse.then()
-                .statusCode(404); // Ensure an error message is returned
+                .statusCode(404)
+                .body("error", notNullValue());
     }
 
     @Given("the project with ID exists with related TODO items")
@@ -188,7 +189,8 @@ public class ProjectStepsDefinition {
 
     @Then("an error message is returned stating the project does not exist")
     public void an_error_message_is_returned_stating_the_project_does_not_exist() {
-        lastResponse.then().statusCode(200);
+        lastResponse.then().statusCode(404)
+        .body("error", notNullValue());
     }
 
     // Cleanup: Delete the created projects after the test
@@ -362,7 +364,8 @@ public class ProjectStepsDefinition {
 
     @Then("the user is informed that the project does not exist")
     public void the_user_is_informed_that_the_project_does_not_exist() {
-        lastResponse.then().statusCode(404); // 404 Not Found with an error message
+        lastResponse.then().statusCode(404) // 404 Not Found with an error message
+        .body("error", notNullValue());
     }
 
     // Scenario: Ensure the project exists and store the original status
