@@ -11,7 +11,7 @@ Feature: Update a category
     And the category named "<title>" can be found with description "<newDescription>"
 
     Examples:
-      | title       | description                                      | newDescription |
+      | title       | description                                      | newDescription                          |
       | Assignments | Todos related to any course assignments          | Todos related to any course lab reports |
       | Midterms    | Todos realted to any course midterm examinations | Todos realted to any course quizzes     |
 
