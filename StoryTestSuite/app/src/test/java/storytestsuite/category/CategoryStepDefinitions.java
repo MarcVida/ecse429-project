@@ -101,52 +101,67 @@ public class CategoryStepDefinitions {
 
 
     // Get Category List Feature Step Definitions
+
+    // Get Category List Feature Step Definitions
+
     @Given("the categories with the following titles:")
-    public void givenCategoriesWithTitles(DataTable titles) {
+    public void givenCategoriesWithOnlyTitles(DataTable titles) {
         titles.asList().forEach(title -> {
             createCategoryWithTitleAndDescription(title, "");
         });
     }
 
     @When("the user tries to get a list of all categories")
-    public void getAllCategories() {
+    public void getAllCategoriesList() {
         lastResponse = given().get("categories");
     }
 
     @Then("the categories with the following titles are found:")
-    public void verifyCategoriesFound(DataTable titles) {
+    public void verifyCategoriesTitlesFound(DataTable titles) {
         lastResponse.then()
             .statusCode(200)
             .body("categories.title", hasItems(titles.asList().toArray()));
     }
 
     @Given("the categories with the following titles and descriptions exist:")
-    public void givenCategoriesWithTitlesAndDescriptions(DataTable titlesAndDescriptions) {
+    public void givenCategoriesWithSpecificTitlesAndDescriptions(DataTable titlesAndDescriptions) {
         titlesAndDescriptions.asMaps().forEach(row -> {
             createCategoryWithTitleAndDescription(row.get("title"), row.get("description"));
         });
     }
 
     @When("the user tries to get a list of categories with descriptions of {string}")
-    public void getCategoriesWithDescription(String description) {
+    public void getCategoriesByDescription(String description) {
         lastResponse = given()
             .queryParam("description", description)
             .get("categories");
     }
 
+    @Then("the categories with the following titles are found by description:")
+    public void verifyCategoriesWithMatchingDescription(DataTable titles) {
+        // Extract the list of titles to compare with the response
+        List<String> expectedTitles = titles.asList();
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.size()", equalTo(expectedTitles.size())) // Check number of categories matches
+            .body("categories.title", hasItems(expectedTitles.toArray())); // Verify titles are present in response
+    }
+
     @When("the user tries to get the list of categories with non-existent property {string} set to {string}")
-    public void getCategoriesWithNonExistentProperty(String property, String value) {
+    public void getCategoriesByNonExistentProperty(String property, String value) {
         lastResponse = given()
             .queryParam(property, value)
             .get("categories");
     }
 
-    @Then("no category is found")
-    public void verifyNoCategoryFound() {
+    @Then("no category is found by non-existent property")
+    public void verifyNoCategoryFoundForNonExistentProperty() {
         lastResponse.then()
             .statusCode(200)
-            .body("categories.size()", equalTo(0));
+            .body("categories.size()", equalTo(0)); // Confirm no categories are returned
     }
+
+
 
     // Delete Category Feature Step Definitions
     @Given("the category named {string} exists")
