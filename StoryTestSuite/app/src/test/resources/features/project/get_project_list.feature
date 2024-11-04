@@ -15,17 +15,17 @@ Feature: Get Project(s)
       | id |
       | <dynamically created ID> |
 
-  Scenario: Get all projects (Alternative flow)
-    Given multiple projects exist
-    When the user tries to get all projects
-    Then the number of projects returned is greater than 0
+    Scenario: Get all projects (Alternative flow)
+      Given multiple projects exist
+      When the user tries to get all projects
+      Then the number of projects returned is greater than 0
 
-  Scenario: Get a project by a non-existing ID (Error flow)
-    Given no project with ID "<id>" exists
-    When the user tries to get the project with non-existed ID "<id>"
-    Then no project is found, and an error message is returned
+    Scenario: Get a project by a non-existing ID (Error flow)
+      Given no project with ID "<id>" exists
+      When the user tries to get the project with non-existed ID "<id>"
+      Then no project is found, and an error message is returned
 
-    Examples:
-      | id   |
-      | 999  |
-      | 1009 |
+      Examples:
+        | id   |
+        | 999  |
+        | 1009 |

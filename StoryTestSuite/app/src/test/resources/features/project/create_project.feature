@@ -18,13 +18,13 @@ Feature: Create a Project
 
 
   Scenario Outline: Create a project with minimal data (Alternate flow)
-  When the user tries to create a project with title "<title>" and active status "<active>"
-  Then the project "<title>" is successfully created with default values for other fields
+    When the user tries to create a project with title "<title>" and active status "<active>"
+    Then the project "<title>" is successfully created with default values for other fields
 
-  Examples:
-    | title          | active |
-    | Simple Project | true   |
-    | Big Project    | false  |
+    Examples:
+      | title          | active |
+      | Simple Project | true   |
+      | Big Project    | false  |
 
   Scenario Outline: Create a project with missing or invalid fields (Error flow)
     When the user tries to create a project with invalid field "<fieldName>" and value "<fieldValue>"
