@@ -36,19 +36,16 @@ public class CategoryStepDefinitions {
                 delete("categories/" + id);
             }
         }
-
         categoryTitlesToDelete.clear();
         lastResponse = null;
     }
 
     // Create Category Feature Step Definitions
-
     @When("the user tries to create a new category with title {string}, and description {string}")
     public void createCategoryWithTitleAndDescription(String title, String description) {
         lastResponse = given()
             .body("{ \"title\": \"" + title + "\", \"description\": \"" + description + "\"}")
             .post("categories");
-
         categoryTitlesToDelete.add(title);
     }
 
@@ -65,7 +62,6 @@ public class CategoryStepDefinitions {
         lastResponse = given()
             .body("{ \"title\": \"" + title + "\"}")
             .post("categories");
-
         categoryTitlesToDelete.add(title);
     }
 
@@ -90,7 +86,6 @@ public class CategoryStepDefinitions {
     }
 
     // Get Category List Feature Step Definitions
-
     @Given("the categories with the following titles:")
     public void givenCategoriesWithTitles(DataTable titles) {
         titles.asList().forEach(title -> {
@@ -138,8 +133,45 @@ public class CategoryStepDefinitions {
             .body("categories.size()", equalTo(0));
     }
 
-    // Update Category Feature Step Definitions
+    // Delete Category Feature Step Definitions
+    @Given("the category named {string} exists")
+    public void the_category_named_exists(String title) {
+        createCategoryWithTitleAndDescription(title, "");
+    }
 
+    @When("the user tries to delete the category named {string}")
+    public void the_user_tries_to_delete_the_category_named(String title) {
+        String idString = getCategoryID(title);
+        lastResponse = given().when().delete("categories/" + idString);
+    }
+
+    @When("the user tries to delete all categories")
+    public void the_user_tries_to_delete_all_categories() {
+        lastResponse = given().when().delete("categories");
+    }
+
+    @When("the user tries to delete the category with id {string}")
+    public void the_user_tries_to_delete_the_category_with_id(String id) {
+        lastResponse = given().when().delete("categories/" + id);
+    }
+
+    @Then("the category named {string} is successfully deleted")
+    public void the_category_named_is_successfully_deleted(String title) {
+        lastResponse.then().statusCode(200);
+    }
+
+    @Then("the category named {string} cannot be found")
+    public void the_category_named_cannot_be_found(String title) {
+        given().when().queryParam("title", title).get("categories")
+            .then().statusCode(200).body("categories.size()", equalTo(0));
+    }
+
+    @Then("the user is informed that the category does not exist")
+    public void the_user_is_informed_that_the_category_does_not_exist() {
+        lastResponse.then().statusCode(404);
+    }
+
+    // Update Category Feature Step Definitions
     @Given("the category named {string} exists with description {string}")
     public void givenCategoryExistsWithDescription(String title, String description) {
         createCategoryWithTitleAndDescription(title, description);
@@ -147,7 +179,7 @@ public class CategoryStepDefinitions {
 
     @When("the user tries to update the description of the category named {string} to {string}")
     public void updateCategoryDescription(String title, String newDescription) {
-        String id = getCategoryId(title);
+        String id = getCategoryID(title);
         lastResponse = given()
             .body("{ \"description\": \"" + newDescription + "\"}")
             .put("categories/" + id);
@@ -162,20 +194,11 @@ public class CategoryStepDefinitions {
 
     @When("the user tries to update the category named {string} to {string}")
     public void updateCategoryTitle(String title, String newTitle) {
-        String id = getCategoryId(title);
+        String id = getCategoryID(title);
         lastResponse = given()
             .body("{ \"title\": \"" + newTitle + "\"}")
             .put("categories/" + id);
-
         categoryTitlesToDelete.add(newTitle); // Track the new title for cleanup
-    }
-
-    @When("the user tries to update the category named {string} to id {string}")
-    public void updateCategoryId(String title, String newId) {
-        String id = getCategoryId(title);
-        lastResponse = given()
-            .body("{ \"id\": \"" + newId + "\"}")
-            .put("categories/" + id);
     }
 
     @Then("the category is not updated")
@@ -184,7 +207,7 @@ public class CategoryStepDefinitions {
     }
 
     // Helper method to get a category ID based on its title
-    public String getCategoryId(String title) {
+    private String getCategoryID(String title) {
         return given()
             .queryParam("title", title)
             .get("categories")
