@@ -40,6 +40,9 @@ public class CategoryStepDefinitions {
         lastResponse = null;
     }
 
+
+
+    
     // Create Category Feature Step Definitions
     @When("the user tries to create a new category with title {string}, and description {string}")
     public void createCategoryWithTitleAndDescription(String title, String description) {
@@ -55,6 +58,15 @@ public class CategoryStepDefinitions {
             .statusCode(201)
             .body("title", equalTo(title))
             .body("description", equalTo(description));
+    }
+
+    @Then("the category named {string} can be found with description {string}")
+    public void verifyCategoryCanBeFoundWithDescription(String title, String description) {
+        given().queryParam("title", title)
+            .when().get("categories")
+            .then()
+            .statusCode(200)
+            .body("categories.find { it.title == '" + title + "' }.description", equalTo(description));
     }
 
     @When("the user tries to create a new category with title {string}")
@@ -84,6 +96,9 @@ public class CategoryStepDefinitions {
     public void verifyCategoryNotCreated() {
         lastResponse.then().statusCode(400);
     }
+
+
+
 
     // Get Category List Feature Step Definitions
     @Given("the categories with the following titles:")
