@@ -142,12 +142,17 @@ public class CategoryStepDefinitions {
     @When("the user tries to delete the category named {string}")
     public void the_user_tries_to_delete_the_category_named(String title) {
         String idString = getCategoryID(title);
-        lastResponse = given().when().delete("categories/" + idString);
+        if (idString != null) {
+            lastResponse = given().when().delete("categories/" + idString);
+        }
     }
 
     @When("the user tries to delete all categories")
     public void the_user_tries_to_delete_all_categories() {
         lastResponse = given().when().delete("categories");
+        if (lastResponse.statusCode() == 200) {
+            categoryTitlesToDelete.clear(); // Clear titles since all categories are deleted
+        }
     }
 
     @When("the user tries to delete the category with id {string}")
@@ -166,10 +171,23 @@ public class CategoryStepDefinitions {
             .then().statusCode(200).body("categories.size()", equalTo(0));
     }
 
+    @Then("all categories are successfully deleted")
+    public void all_categories_are_successfully_deleted() {
+        given().when().get("categories")
+            .then().statusCode(200).body("categories.size()", equalTo(0));
+    }
+
     @Then("the user is informed that the category does not exist")
     public void the_user_is_informed_that_the_category_does_not_exist() {
         lastResponse.then().statusCode(404);
     }
+
+    @Then("the category with id {string} cannot be found")
+    public void the_category_with_id_cannot_be_found(String id) {
+        given().when().get("categories/" + id)
+            .then().statusCode(404);
+    }
+
 
     // Update Category Feature Step Definitions
     @Given("the category named {string} exists with description {string}")
@@ -208,9 +226,10 @@ public class CategoryStepDefinitions {
 
     // Helper method to get a category ID based on its title
     private String getCategoryID(String title) {
-        return given()
+        List<String> ids = given()
             .queryParam("title", title)
             .get("categories")
-            .jsonPath().getString("categories[0].id");
+            .jsonPath().getList("categories.id");
+        return ids.isEmpty() ? null : ids.get(0);
     }
 }
