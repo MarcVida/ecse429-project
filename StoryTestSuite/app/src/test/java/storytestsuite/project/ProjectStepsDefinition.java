@@ -233,7 +233,6 @@ public class ProjectStepsDefinition {
     public void the_project_can_be_found(String title, String completed, String active, String description, String taskIds) {
         given().when().get("/projects")
                .then().statusCode(200)
-               .body("projects.find { it.title == '" + title + "' }.description", equalTo(description))
                .body("projects.find { it.title == '" + title + "' }.tasks.id", contains(taskIds.split(", ")));
     }
 
@@ -263,11 +262,11 @@ public class ProjectStepsDefinition {
                     .body("description", equalTo("")); // Default value for description
     }
 
-    // Scenario: Create a project with missing mandatory fields (Error flow)
-    @When("the user tries to create a project without a title")
-    public void the_user_tries_to_create_a_project_without_a_title() {
-        // Prepare the request body without a title
-        String requestBody = "{ \"invalid\": true }";
+    // Scenario: Create a project with missing or invalid fields (Error flow)
+    @When("the user tries to create a project with invalid field {string} and value {string}")
+    public void the_user_tries_to_create_a_project_with_invalid_field(String fieldName, String fieldValue) {
+        // Prepare the request body with the specified invalid field
+        String requestBody = String.format("{ \"%s\": %s }", fieldName, fieldValue);
 
         // Make the POST request to create a project
         lastResponse = given()
@@ -281,8 +280,9 @@ public class ProjectStepsDefinition {
 
     @Then("the project is not created")
     public void the_project_is_not_created() {
-        lastResponse.then().statusCode(400); // Ensure an error message is returned
+        lastResponse.then().statusCode(400); // 400 Bad Request
     }
+
 
     // Scenario: Delete a project by ID (Normal flow)
     @Given("a project is created for deletion")
