@@ -1,129 +1,193 @@
-package test.java.storytestsuite.category;
+package storytestsuite.category;
 
+import static io.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.After;
+import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.Given;
-import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 
 public class CategoryStepDefinitions {
 
-    // Step definitions for "Create Category" feature
+    public static List<String> categoryTitlesToDelete = new ArrayList<>(); // Stores categories to delete after each scenario
+    public static Response lastResponse = null; // Stores the response of the last request
+
+    @BeforeAll
+    public static void before_all() {
+        RestAssured.baseURI = "http://localhost:4567/";
+    }
+
+    @After
+    public void delete_category_items() {
+        for (String title : categoryTitlesToDelete) {
+            var categoryIds = given()
+                .queryParam("title", title)
+                .get("categories")
+                .jsonPath().getList("categories.id");
+            for (var id : categoryIds) {
+                delete("categories/" + id);
+            }
+        }
+
+        categoryTitlesToDelete.clear();
+        lastResponse = null;
+    }
+
+    // Create Category Feature Step Definitions
 
     @When("the user tries to create a new category with title {string}, and description {string}")
     public void createCategoryWithTitleAndDescription(String title, String description) {
-        // Code to create a category with the specified title and description
+        lastResponse = given()
+            .body("{ \"title\": \"" + title + "\", \"description\": \"" + description + "\"}")
+            .post("categories");
+
+        categoryTitlesToDelete.add(title);
     }
 
     @Then("the category named {string} is successfully created with description {string}")
     public void verifyCategoryCreatedWithDescription(String title, String description) {
-        // Code to verify that the category was created with the given title and description
-    }
-
-    @Then("the category named {string} can be found with description {string}")
-    public void verifyCategoryExistsWithDescription(String title, String description) {
-        // Code to confirm that the category exists with the specified title and description
+        lastResponse.then()
+            .statusCode(201)
+            .body("title", equalTo(title))
+            .body("description", equalTo(description));
     }
 
     @When("the user tries to create a new category with title {string}")
     public void createCategoryWithTitleOnly(String title) {
-        // Code to create a category with only the title
+        lastResponse = given()
+            .body("{ \"title\": \"" + title + "\"}")
+            .post("categories");
+
+        categoryTitlesToDelete.add(title);
     }
 
     @Then("the category named {string} is successfully created with an empty description")
     public void verifyCategoryCreatedWithEmptyDescription(String title) {
-        // Code to verify that the category was created with an empty description
+        lastResponse.then()
+            .statusCode(201)
+            .body("title", equalTo(title))
+            .body("description", isEmptyOrNullString());
     }
 
     @When("the user tries to create a new category with description {string}")
     public void createCategoryWithDescriptionOnly(String description) {
-        // Code to attempt creating a category with only a description
+        lastResponse = given()
+            .body("{ \"description\": \"" + description + "\"}")
+            .post("categories");
     }
 
     @Then("the new category is not created")
     public void verifyCategoryNotCreated() {
-        // Code to verify that the category was not created
+        lastResponse.then().statusCode(400);
     }
 
-    // Step definitions for "Get Category List" feature
+    // Get Category List Feature Step Definitions
 
     @Given("the categories with the following titles:")
-    public void givenCategoriesWithTitles(io.cucumber.datatable.DataTable titles) {
-        // Code to set up categories with given titles in the system
+    public void givenCategoriesWithTitles(DataTable titles) {
+        titles.asList().forEach(title -> {
+            createCategoryWithTitleAndDescription(title, "");
+        });
     }
 
     @When("the user tries to get a list of all categories")
     public void getAllCategories() {
-        // Code to retrieve all categories
+        lastResponse = given().get("categories");
     }
 
     @Then("the categories with the following titles are found:")
-    public void verifyCategoriesFound(io.cucumber.datatable.DataTable titles) {
-        // Code to verify that the specified categories are returned in the list
+    public void verifyCategoriesFound(DataTable titles) {
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.title", hasItems(titles.asList().toArray()));
     }
 
     @Given("the categories with the following titles and descriptions exist:")
-    public void givenCategoriesWithTitlesAndDescriptions(io.cucumber.datatable.DataTable titlesAndDescriptions) {
-        // Code to set up categories with titles and descriptions
+    public void givenCategoriesWithTitlesAndDescriptions(DataTable titlesAndDescriptions) {
+        titlesAndDescriptions.asMaps().forEach(row -> {
+            createCategoryWithTitleAndDescription(row.get("title"), row.get("description"));
+        });
     }
 
     @When("the user tries to get a list of categories with descriptions of {string}")
     public void getCategoriesWithDescription(String description) {
-        // Code to retrieve categories matching the specified description
-    }
-
-    @Given("the category named {string} exists")
-    public void givenCategoryExists(String title) {
-        // Code to ensure a category with the specified title exists
+        lastResponse = given()
+            .queryParam("description", description)
+            .get("categories");
     }
 
     @When("the user tries to get the list of categories with non-existent property {string} set to {string}")
     public void getCategoriesWithNonExistentProperty(String property, String value) {
-        // Code to attempt retrieval of categories based on a non-existent property
+        lastResponse = given()
+            .queryParam(property, value)
+            .get("categories");
     }
 
     @Then("no category is found")
     public void verifyNoCategoryFound() {
-        // Code to verify that no categories are found
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.size()", equalTo(0));
     }
 
-    // Step definitions for "Update Category" feature
+    // Update Category Feature Step Definitions
 
     @Given("the category named {string} exists with description {string}")
     public void givenCategoryExistsWithDescription(String title, String description) {
-        // Code to ensure a category with specified title and description exists
+        createCategoryWithTitleAndDescription(title, description);
     }
 
     @When("the user tries to update the description of the category named {string} to {string}")
     public void updateCategoryDescription(String title, String newDescription) {
-        // Code to update the category's description
+        String id = getCategoryId(title);
+        lastResponse = given()
+            .body("{ \"description\": \"" + newDescription + "\"}")
+            .put("categories/" + id);
     }
 
     @Then("the category is successfully updated with description {string}")
     public void verifyCategoryUpdatedWithDescription(String newDescription) {
-        // Code to verify the category was updated with the new description
+        lastResponse.then()
+            .statusCode(200)
+            .body("description", equalTo(newDescription));
     }
 
     @When("the user tries to update the category named {string} to {string}")
     public void updateCategoryTitle(String title, String newTitle) {
-        // Code to update the category's title
-    }
+        String id = getCategoryId(title);
+        lastResponse = given()
+            .body("{ \"title\": \"" + newTitle + "\"}")
+            .put("categories/" + id);
 
-    @Then("the category named {string} can be found")
-    public void verifyCategoryCanBeFound(String title) {
-        // Code to verify that the category exists with the specified title
-    }
-
-    @Then("the category named {string} cannot be found")
-    public void verifyCategoryCannotBeFound(String title) {
-        // Code to verify that a category with the old title no longer exists
+        categoryTitlesToDelete.add(newTitle); // Track the new title for cleanup
     }
 
     @When("the user tries to update the category named {string} to id {string}")
     public void updateCategoryId(String title, String newId) {
-        // Code to attempt updating the category's ID, which should fail
+        String id = getCategoryId(title);
+        lastResponse = given()
+            .body("{ \"id\": \"" + newId + "\"}")
+            .put("categories/" + id);
     }
 
     @Then("the category is not updated")
     public void verifyCategoryNotUpdated() {
-        // Code to confirm the category was not updated
+        lastResponse.then().statusCode(400);
+    }
+
+    // Helper method to get a category ID based on its title
+    public String getCategoryId(String title) {
+        return given()
+            .queryParam("title", title)
+            .get("categories")
+            .jsonPath().getString("categories[0].id");
     }
 }
