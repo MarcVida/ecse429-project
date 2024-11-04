@@ -240,6 +240,7 @@ public class CategoryStepDefinitions {
             .body("description", equalTo(newDescription));
     }
 
+    // This method updates the title of a category
     @When("the user tries to update the category named {string} to {string}")
     public void updateCategoryTitle(String title, String newTitle) {
         String id = getCategoryID(title);
@@ -253,6 +254,30 @@ public class CategoryStepDefinitions {
     public void verifyCategoryNotUpdated() {
         lastResponse.then().statusCode(400);
     }
+
+    // This method checks if the updated category can be found
+    @Then("the modified category named {string} can be found with description {string}")
+    public void verifyUpdatedCategoryByDescription(String title, String newDescription) {
+        // Ensure we are querying the correct title after it might have been updated
+        lastResponse = given().queryParam("title", title)
+            .when().get("categories");
+
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.find { it.title == '" + title + "' }.description", equalTo(newDescription));
+    }
+
+    // This method checks if the old category cannot be found
+    @Then("the old category named {string} cannot be found")
+    public void verifyOldCategoryCannotBeFound(String title) {
+        lastResponse = given().queryParam("title", title)
+            .when().get("categories");
+
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.size()", equalTo(0));
+    }
+
 
     // Helper method to get a category ID based on its title
     private String getCategoryID(String title) {

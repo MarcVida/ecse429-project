@@ -8,7 +8,7 @@ Feature: Update a category
     Given the category named "<title>" exists with description "<description>"
     When the user tries to update the description of the category named "<title>" to "<newDescription>"
     Then the category is successfully updated with description "<newDescription>"
-    And the category named "<title>" can be found with description "<newDescription>"
+    And the modified category named "<title>" can be found with description "<newDescription>"
 
     Examples:
       | title       | description                                      | newDescription                          |
@@ -20,7 +20,7 @@ Feature: Update a category
     When the user tries to update the category named "<title>" to "<newTitle>"
     Then the category is successfully updated to title "<newTitle>"
     And the category named "<newTitle>" can be found
-    And the category named "<title>" cannot be found
+    And the old category named "<title>" cannot be found
 
     Examples:
       | title       | newTitle |
