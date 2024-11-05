@@ -27,14 +27,14 @@ Feature: Get a list of categories based off of conditions
       | <title2> | <description2> |
       | <title3> | <description3> |
     When the user tries to get a list of categories with descriptions of "<description>"
-    Then the categories with the following titles are found:
+    Then the categories with the following titles are found by description:
       | <title1> |
       | <title2> |
 
     Examples:
-      | title1      | description1       | title2   | description2       | title3 | description3              |
-      | Assignments | Course Assesments  | Projects | Course Assesments  | Labs   | Lab reports and findings  |
-      | Papers      | Course Evaluations | Quizzes  | Course Evaluations | Finals | Final course examinations | 
+      | title1      | description1       | title2   | description2       | title3 | description3              | description        |
+      | Assignments | Course Assesments  | Projects | Course Assesments  | Labs   | Lab reports and findings  | Course Assesments  |
+      | Papers      | Course Evaluations | Quizzes  | Course Evaluations | Finals | Final course examinations | Course Evaluations |
 
   Scenario: Get the list of categories with a non-existing property (Error flow)
     Given the category named "Assignments" exists
