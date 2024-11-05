@@ -219,23 +219,36 @@ public class CategoryStepDefinitions {
 
     // Update Category Feature Step Definitions
     @Given("the category named {string} exists with description {string}")
-    public void givenCategoryExistsWithDescription(String title, String description) {
+    public void the_category_exists_with_description(String title, String description) {
         createCategoryWithTitleAndDescription(title, description);
     }
-
+    
     @When("the user tries to update the description of the category named {string} to {string}")
-    public void updateCategoryDescription(String title, String newDescription) {
+    public void the_user_tries_to_update_the_category_description(String title, String newDescription) {
         String id = getCategoryID(title);
-        lastResponse = given()
-            .body("{ \"description\": \"" + newDescription + "\"}")
+        lastResponse = given().when()
+            .body("{ \"title\": \"" + title + 
+                  "\", \"description\": \"" + newDescription + "\"}")
             .put("categories/" + id);
     }
-
+    
     @Then("the category is successfully updated with description {string}")
-    public void verifyCategoryUpdatedWithDescription(String newDescription) {
+    public void the_category_is_successfully_updated_to_description(String newDescription) {
         lastResponse.then()
             .statusCode(200)
             .body("description", equalTo(newDescription));
+    }
+    
+    @Then("the modified category named {string} can be found with description {string}")
+    public void the_category_can_be_found_with_description(String title, String newDescription) {
+        given().when()
+            .queryParam("title", title)
+            .get("categories")
+        .then()
+            .statusCode(200)
+            .body("categories.size()", equalTo(1))
+            .body("categories[0].title", equalTo(title))
+            .body("categories[0].description", equalTo(newDescription));
     }
 
     // This method updates the title of a category
@@ -253,17 +266,7 @@ public class CategoryStepDefinitions {
         lastResponse.then().statusCode(400);
     }
 
-    // This method checks if the updated category can be found
-    @Then("the modified category named {string} can be found with description {string}")
-    public void verifyUpdatedCategoryByDescription(String title, String newDescription) {
-        // Ensure we are querying the correct title after it might have been updated
-        lastResponse = given().queryParam("title", title)
-            .when().get("categories");
-
-        lastResponse.then()
-            .statusCode(200)
-            .body("categories.find { it.title == '" + title + "' }.description", equalTo(newDescription));
-    }
+    
 
     // This method checks if the old category cannot be found
     @Then("the old category named {string} cannot be found")
@@ -281,6 +284,7 @@ public class CategoryStepDefinitions {
     // Search Category Feature Step Definitions
 
     @When("the user searches for the category named {string}")
+    @When("the user searches for the category with partial title {string}")
     public void whenUserSearchesForCategoryNamed(String title) {
         lastResponse = given()
             .queryParam("title", title)
@@ -291,14 +295,9 @@ public class CategoryStepDefinitions {
     public void thenCategoryNamedIsFound(String title) {
         lastResponse.then()
             .statusCode(200)
-            .body("categories.title", hasItem(title));
-    }
-
-    @When("the user searches for the category with partial title {string}")
-    public void whenUserSearchesForCategoryWithPartialTitle(String partialTitle) {
-        lastResponse = given()
-            .queryParam("title_like", partialTitle) // Assuming a title_like filter is supported
-            .get("categories");
+            .body("categories.size()", equalTo(1))
+            .body("categories[0].id", notNullValue())
+            .body("categories[0].title", equalTo(title));
     }
 
     @When("the user searches for a non-existing category named {string}")
