@@ -17,7 +17,7 @@ import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
-public class ProjectStepsDefinition {
+public class ProjectStepsDefinitions {
 
     public static List<String> projectTitlesToDelete = new ArrayList<>(); // stores todo items to delete after each scenario
     public static Response lastResponse = null; // stores the response of the last request
