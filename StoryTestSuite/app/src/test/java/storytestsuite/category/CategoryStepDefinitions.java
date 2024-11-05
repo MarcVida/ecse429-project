@@ -282,11 +282,6 @@ public class CategoryStepDefinitions {
 
     // Search Category Feature Step Definitions
 
-    // @Given("the category named {string} exists")
-    // public void givenCategoryNamedExists(String title) {
-    //     createCategoryWithTitleAndDescription(title, ""); // Assuming empty description
-    // }
-
     @When("the user searches for the category named {string}")
     public void whenUserSearchesForCategoryNamed(String title) {
         lastResponse = given()
