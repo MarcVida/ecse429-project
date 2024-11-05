@@ -282,6 +282,16 @@ public class CategoryStepDefinitions {
     }
     
     
+    @When("the user tries to update the category named {string} to id {string}")
+    public void the_user_tries_to_update_the_category_named_to_id(String title, String id) {
+        String idString = getCategoryID(title);
+        lastResponse = given().when()
+            .body("{ \"title\": \"" + title + 
+                "\", \"id\": " + id + "}")
+            .put("categories/" + idString);
+    }
+
+
     //error flow portions
     @Then("the category is not updated")
     public void verifyCategoryNotUpdated() {
