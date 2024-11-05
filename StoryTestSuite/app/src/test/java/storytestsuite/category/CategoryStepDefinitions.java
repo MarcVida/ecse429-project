@@ -279,6 +279,55 @@ public class CategoryStepDefinitions {
     }
 
 
+
+    // Search Category Feature Step Definitions
+
+    // @Given("the category named {string} exists")
+    // public void givenCategoryNamedExists(String title) {
+    //     createCategoryWithTitleAndDescription(title, ""); // Assuming empty description
+    // }
+
+    @When("the user searches for the category named {string}")
+    public void whenUserSearchesForCategoryNamed(String title) {
+        lastResponse = given()
+            .queryParam("title", title)
+            .get("categories");
+    }
+
+    @Then("the category named {string} is found")
+    public void thenCategoryNamedIsFound(String title) {
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.title", hasItem(title));
+    }
+
+    @When("the user searches for the category with partial title {string}")
+    public void whenUserSearchesForCategoryWithPartialTitle(String partialTitle) {
+        lastResponse = given()
+            .queryParam("title_like", partialTitle) // Assuming a title_like filter is supported
+            .get("categories");
+    }
+
+    @When("the user searches for a non-existing category named {string}")
+    public void whenUserSearchesForNonExistingCategory(String title) {
+        lastResponse = given()
+            .queryParam("title", title)
+            .get("categories");
+    }
+
+    @Then("no category is found")
+    public void thenNoCategoryIsFound() {
+        lastResponse.then()
+            .statusCode(200)
+            .body("categories.size()", equalTo(0));
+    }
+
+
+
+
+
+
+
     // Helper method to get a category ID based on its title
     private String getCategoryID(String title) {
         List<String> ids = given()
