@@ -102,8 +102,6 @@ public class CategoryStepDefinitions {
 
     // Get Category List Feature Step Definitions
 
-    // Get Category List Feature Step Definitions
-
     @Given("the categories with the following titles:")
     public void givenCategoriesWithOnlyTitles(DataTable titles) {
         titles.asList().forEach(title -> {
