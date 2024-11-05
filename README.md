@@ -26,7 +26,7 @@ gradlew test --tests 'ShutdownTest'
 - **JVM:** 21 (Oracle Corporation 21+35-LTS-2513)
 
 ### User stories
-The user stories are in the `UserStories/UserStories.xlsx` file.
+The user stories are in the `StoryTestSuite/PartB-user-stories.xlsx` file.
 
 ### Running the Tests
 To run all the tests, execute the following command inside the `StoryTestSuite` project folder:
