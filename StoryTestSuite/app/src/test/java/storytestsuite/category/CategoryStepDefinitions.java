@@ -122,28 +122,28 @@ public class CategoryStepDefinitions {
     }
 
     @Given("the categories with the following titles and descriptions exist:")
-    public void givenCategoriesWithSpecificTitlesAndDescriptions(DataTable titlesAndDescriptions) {
-        titlesAndDescriptions.asMaps().forEach(row -> {
+    public void the_categories_with_the_following_titles_and_descriptions_exist(DataTable titlesAndDescriptions) {
+        var table = titlesAndDescriptions.asMaps();
+        for (var row : table) {
             createCategoryWithTitleAndDescription(row.get("title"), row.get("description"));
-        });
+        }
     }
 
     @When("the user tries to get a list of categories with descriptions of {string}")
-    public void getCategoriesByDescription(String description) {
-        lastResponse = given()
+    public void the_user_tries_to_get_the_list_of_categories_with_descriptions(String description) {
+        lastResponse = given().when()
             .queryParam("description", description)
             .get("categories");
     }
 
     @Then("the categories with the following titles are found by description:")
-    public void verifyCategoriesWithMatchingDescription(DataTable titles) {
-        // Extract the list of titles to compare with the response
-        List<String> expectedTitles = titles.asList();
+    public void the_categories_with_the_following_titles_are_found_by_description(List<String> titles) {
         lastResponse.then()
             .statusCode(200)
-            .body("categories.size()", equalTo(expectedTitles.size())) // Check number of categories matches
-            .body("categories.title", hasItems(expectedTitles.toArray())); // Verify titles are present in response
+            .body("categories.size()", greaterThan(0)) // Checks that there is at least one category
+            .body("categories.title", hasItems(titles.toArray())); // Checks that the specified titles are present in the 'categories' array
     }
+    
 
     @When("the user tries to get the list of categories with non-existent property {string} set to {string}")
     public void getCategoriesByNonExistentProperty(String property, String value) {

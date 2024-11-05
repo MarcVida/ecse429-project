@@ -22,7 +22,7 @@ Feature: Get a list of categories based off of conditions
 
   Scenario: Get a list of categories with the same description (Alternate flow)
     Given the categories with the following titles and descriptions exist:
-      | title    | descriptions    |
+      | title    | description    |
       | <title1> | <description1> |
       | <title2> | <description2> |
       | <title3> | <description3> |
