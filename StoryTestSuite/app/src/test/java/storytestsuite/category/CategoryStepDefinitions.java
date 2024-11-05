@@ -261,23 +261,33 @@ public class CategoryStepDefinitions {
         categoryTitlesToDelete.add(newTitle); // Track the new title for cleanup
     }
 
+    @Then("the category is successfully updated to title {string}")
+    public void the_category_is_successfully_updated_to_title(String newTitle) {
+        lastResponse.then()
+            .statusCode(200)
+            .body("title", equalTo(newTitle));
+    }
+
+    @Then("the category named {string} can be found")
+    public void the_category_named_can_be_found(String title) {
+        given()
+        .when()
+            .queryParam("title", title)
+            .get("categories")
+        .then()
+            .statusCode(200)
+            .body("categories.size()", equalTo(1))
+            .body("categories[0].id", notNullValue())
+            .body("categories[0].title", equalTo(title));
+    }
+    
+    
+    //error flow portions
     @Then("the category is not updated")
     public void verifyCategoryNotUpdated() {
         lastResponse.then().statusCode(400);
     }
 
-    
-
-    // This method checks if the old category cannot be found
-    @Then("the old category named {string} cannot be found")
-    public void verifyOldCategoryCannotBeFound(String title) {
-        lastResponse = given().queryParam("title", title)
-            .when().get("categories");
-
-        lastResponse.then()
-            .statusCode(200)
-            .body("categories.size()", equalTo(0));
-    }
 
 
 
@@ -313,11 +323,6 @@ public class CategoryStepDefinitions {
             .statusCode(200)
             .body("categories.size()", equalTo(0));
     }
-
-
-
-
-
 
 
     // Helper method to get a category ID based on its title

@@ -20,7 +20,7 @@ Feature: Update a category
     When the user tries to update the category named "<title>" to "<newTitle>"
     Then the category is successfully updated to title "<newTitle>"
     And the category named "<newTitle>" can be found
-    And the old category named "<title>" cannot be found
+    And the category named "<title>" cannot be found
 
     Examples:
       | title       | newTitle |
