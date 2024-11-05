@@ -1,4 +1,4 @@
-# ecse429-project-partA
+# ecse429-project-partA & partB
 
 ### Excel session notes are in the subdirectories of ExploratorySessionNotes
 
