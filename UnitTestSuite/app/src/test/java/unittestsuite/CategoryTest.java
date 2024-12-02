@@ -154,10 +154,8 @@ public class CategoryTest {
         OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 
         long startTime = System.currentTimeMillis();
-        double startCpuLoad = osBean.getProcessCpuLoad() * 100;
-        long startFreeMemory = osBean.getFreePhysicalMemorySize();
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 4; i <= 14; i++) {
             given()
                 .when()
                     .body("{ \"title\": \"update food " + i + "\", \"description\": \"get grapes, pineapples, watermelons\" }")
@@ -169,8 +167,8 @@ public class CategoryTest {
         long endFreeMemory = osBean.getFreePhysicalMemorySize();
 
         System.out.println("\nTotal Time for PUT 10 requests: " + (endTime - startTime) + " ms");
-        System.out.printf("CPU Usage Change (PUT): %.2f%%\n", endCpuLoad - startCpuLoad);
-        System.out.printf("Memory Change (PUT): %.2f MB\n", (startFreeMemory - endFreeMemory) / (1024.0 * 1024.0));
+        System.out.printf("CPU Usage Change (PUT): %.2f%%\n", endCpuLoad);
+        System.out.printf("Memory Change (PUT): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
 
