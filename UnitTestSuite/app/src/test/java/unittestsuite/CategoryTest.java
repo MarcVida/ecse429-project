@@ -131,7 +131,7 @@ public class CategoryTest {
 
         long startTime = System.currentTimeMillis();
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 0; i < 10; i++) {
             given()
                 .when()
                     .body("{ \"title\": \"buy food " + i + "\", \"description\": \"get apples, bananas, oranges\" }")
@@ -143,8 +143,8 @@ public class CategoryTest {
         long endFreeMemory = osBean.getFreePhysicalMemorySize();
 
         System.out.println("\nTotal Time for POST 10 requests: " + (endTime - startTime) + " ms");
-        System.out.printf("CPU Usage Change (POST 10): %.2f%%\n", endCpuLoad);
-        System.out.printf("Memory Change (POST 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+        System.out.printf("CPU Usage (POST 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (POST 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
 
@@ -155,7 +155,7 @@ public class CategoryTest {
 
         long startTime = System.currentTimeMillis();
 
-        for (int i = 4; i <= 14; i++) {
+        for (int i = 4; i < 14; i++) {
             given()
                 .when()
                     .body("{ \"title\": \"update food " + i + "\", \"description\": \"get grapes, pineapples, watermelons\" }")
@@ -167,9 +167,227 @@ public class CategoryTest {
         long endFreeMemory = osBean.getFreePhysicalMemorySize();
 
         System.out.println("\nTotal Time for PUT 10 requests: " + (endTime - startTime) + " ms");
-        System.out.printf("CPU Usage Change (PUT): %.2f%%\n", endCpuLoad);
-        System.out.printf("Memory Change (PUT): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+        System.out.printf("CPU Usage (PUT 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (PUT 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
+
+
+    @Test
+    @Order(8)           
+    public void testGetAll10() { // Get all 10 resources
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        Response getResponse = given()
+            .when()
+                .get("");
+
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTransaction time GET 10: " + getResponse.time() + " ms");
+        System.out.printf("CPU Usage (GET 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (GET 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+
+    }
+
+    @Test
+    @Order(9)   
+    public void testDelete10() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 4; i < 14; i++) {
+            given()
+                .when()
+                    .delete("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for DELETE 10 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (DELETE 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (DELETE 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }      
+
+
+    @Test
+    @Order(10)   
+    public void testPost100() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < 100; i++) {
+            given()
+                .when()
+                    .body("{ \"title\": \"buy food " + i + "\", \"description\": \"get apples, bananas, oranges\" }")
+                    .post("");
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for POST 100 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (POST 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (POST 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }
+
+    @Test
+    @Order(11)
+    public void testPut100() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 14; i < 114; i++) {
+            given()
+                .when()
+                    .body("{ \"title\": \"update food " + i + "\", \"description\": \"get grapes, pineapples, watermelons\" }")
+                    .put("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for PUT 100 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (PUT 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (PUT 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }
+
+    @Test
+    @Order(12)
+    public void testGetAll100() { // Get all 100 resources
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        Response getResponse = given()
+            .when()
+                .get("");
+
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTransaction time GET 100: " + getResponse.time() + " ms");
+        System.out.printf("CPU Usage (GET 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (GET 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+
+    }
+
+    @Test
+    @Order(13)   
+    public void testDelete100() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 14; i < 114; i++) {
+            given()
+                .when()
+                    .delete("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for DELETE 100 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (DELETE 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (DELETE 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }  
+
+
+    @Test
+    @Order(14)   
+    public void testPost1000() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < 1000; i++) {
+            given()
+                .when()
+                    .body("{ \"title\": \"buy food " + i + "\", \"description\": \"get apples, bananas, oranges\" }")
+                    .post("");
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for POST 1000 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (POST 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (POST 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }
+
+
+    @Test
+    @Order(15)
+    public void testPut1000() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 114; i < 1114; i++) {
+            given()
+                .when()
+                    .body("{ \"title\": \"update food " + i + "\", \"description\": \"get grapes, pineapples, watermelons\" }")
+                    .put("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for PUT 1000 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (PUT 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (PUT 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }
+
+
+
+    @Test
+    @Order(16)
+    public void testGetAll1000() { // Get all 1000 resources
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        Response getResponse = given()
+            .when()
+                .get("");
+
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTransaction time GET 1000: " + getResponse.time() + " ms");
+        System.out.printf("CPU Usage (GET 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (GET 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+
+    }
+
+    @Test
+    @Order(17)   
+    public void testDelete1000() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 114; i < 1114; i++) {
+            given()
+                .when()
+                    .delete("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for DELETE 1000 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (DELETE 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (DELETE 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }
 
 }
