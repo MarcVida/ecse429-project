@@ -2,14 +2,20 @@ package unittestsuite;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
+
+import java.lang.management.ManagementFactory;
+import com.sun.management.OperatingSystemMXBean;
+
 
 @TestMethodOrder(MethodOrderer.Random.class)
 public class ProjectTest {
@@ -30,613 +36,364 @@ public class ProjectTest {
     }
 
     @Test
-    public void testGetAllProjects() {
-        given()
-        .when()
-            .get("")
-        .then()
-            .statusCode(200)
-            .body("size()", greaterThan(0))
-            .body("projects.size()", greaterThan(0));
+    @Order(1) // Test runs first
+    public void testDelete1() {
+        Response response = 
+            given()
+            .when()
+                .delete("/2");
+        
+        System.out.println("Transaction time DELETE 1: " + response.time() + " ms");
+
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        double processCpuLoad = osBean.getProcessCpuLoad() * 100;
+        System.out.printf("Process CPU Usage DELETE 1: %.2f%%\n", processCpuLoad);
+
+        long freeMemory = osBean.getFreePhysicalMemorySize();
+        System.out.printf("Available Memory DELETE 1: %.2f MB\n", freeMemory / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testPostProject() {
-        String idString = given()
-        .when()
-            .body(projectBody)
-            .contentType(ContentType.JSON)
-            .post("")
-        .then()
-            .statusCode(201)
-            .body("id", notNullValue())
-            .body("title", equalTo("New Project"))
-            .body("description", equalTo("Description of new project"))
+    @Order(2) // Test runs second
+    public void testGet1() {
+        Response response = 
+            given()
+            .when()
+                .get("");
+
+        System.out.println("\nTransaction time GET 1: " + response.time() + " ms");
+
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        double processCpuLoad = osBean.getProcessCpuLoad() * 100;
+        System.out.printf("Process CPU Usage GET 1: %.2f%%\n", processCpuLoad);
+
+        long freeMemory = osBean.getFreePhysicalMemorySize();
+        System.out.printf("Available Memory GET 1: %.2f MB\n", freeMemory / (1024.0 * 1024.0));
+    }
+
+    @Test
+    @Order(3) // Test runs third
+    public void testPut1() {
+        Response response = 
+            given()
+            .when()
+                .body("{ \"title\": \"buy even more food\", \"description\": \"get apples, bananas, oranges\" }")
+                .put("/1");
+        
+        System.out.println("\nTransaction time PUT 1: " + response.time() + " ms");
+
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        double processCpuLoad = osBean.getProcessCpuLoad() * 100;
+        System.out.printf("Process CPU Usage PUT 1: %.2f%%\n", processCpuLoad);
+
+        long freeMemory = osBean.getFreePhysicalMemorySize();
+        System.out.printf("Available Memory PUT 1: %.2f MB\n", freeMemory / (1024.0 * 1024.0));
+    }
+
+    @Test
+    @Order(4) 
+    public void testDeleteWithID1() {
+        Response response = 
+            given()
+            .when()
+                .delete("/1");
+    }
+
+    @Test
+    @Order(5)
+    public void testPost1() {
+        // Start tracking system metrics
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        // Capture transaction time for POST request
+        Response postResponse = given()
+            .when()
+            .body("{ \"title\": \"Project with No Tasks\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+
+                .post("");
+
+        // Print POST transaction time
+        System.out.println("\nTransaction time POST 1: " + postResponse.time() + " ms");
+
+        // Track system metrics after POST
+        double postCpuLoad = osBean.getProcessCpuLoad() * 100;
+        System.out.printf("Process CPU Usage POST 1: %.2f%%\n", postCpuLoad);
+
+        long postFreeMemory = osBean.getFreePhysicalMemorySize();
+        System.out.printf("Available Memory POST 1: %.2f MB\n", postFreeMemory / (1024.0 * 1024.0));
+
+        // Extract the ID to be deleted 
+        String idString = postResponse.then()
             .extract().path("id");
 
-        // Clean up - delete the created project
-        delete("/" + Integer.parseInt(idString));
-    }
-
-    @Test
-    public void testGetAllProjects_XML() {
         given()
-        .accept(ContentType.XML)
-        .when()
-            .get("")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.XML)
-            .body(hasXPath("/projects/project"));
-    }
-
-    @Test
-    public void testPostProject_XML() {
-        String idString = given()
-        .body(projectBodyXml)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .post("")
-        .then()
-            .statusCode(201)
-            .contentType(ContentType.XML)
-            .body(hasXPath("/project/id"))
-            .body(hasXPath("/project/title[text()='New Project']"))
-            .body(hasXPath("/project/description[text()='Description of new project']"))
-            .extract()
-            .path("project.id");
-
-        // Clean up - delete the created project
-        delete("/" + idString);
-    }
-
-    @Test
-    public void testPutProject_XML() {
-        given()
-        .body(projectBodyXml)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .put("/1")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.XML)
-            .body(hasXPath("/project/title[text()='New Project']"))
-            .body(hasXPath("/project/description[text()='Description of new project']"));
-    }
-
-    @Test
-    public void testPostProjectInvalidFormat() {
-        given()
-        .when()
-            .body("[{\"title\": \"Invalid Project\", \"description\": \"Invalid project format\"}]")
-            .post("")
-        .then()
-            .statusCode(400)
-            .body("errorMessages", notNullValue());
-    }
-
-    @Test
-    public void testPostProjectInvalidFormat_XML() {
-        String invalidXmlBody = "<projects>" +
-            "<project>" +
-            "<title>Invalid Project</title>" +
-            "<description>Invalid project format" +  // Missing closing tag for description
-            "</project>" +
-            "</projects>";
-
-        given()
-        .body(invalidXmlBody)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .post("")
-        .then()
-            .statusCode(400)
-            .body("errorMessages", notNullValue());  // Check for error messages indicating bad format
+            .when()
+                .delete("/" + idString);
     }
 
 
     @Test
-    public void testHeadAllProjects() {
-        given()
-        .when()
-            .head("")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.JSON);
+    @Order(6)
+    public void testPost10() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < 10; i++) {
+            given()
+                .when()
+                .body("{ \"title\": \"Project with No Tasks\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+
+                    .post("");
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for POST 10 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (POST 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (POST 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testPutNotAllowed() {
-        given()
-        .when()
-            .body(projectBody)
-            .put("")
-        .then()
-            .statusCode(405);
+    @Order(7)
+    public void testPut10() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 4; i < 14; i++) {
+            given()
+                .when()
+                .body("{ \"title\": \"Updated Projects\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+                    .put("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for PUT 10 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (PUT 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (PUT 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testDeleteNotAllowed() {
-        given()
-        .when()
-            .delete("")
-        .then()
-            .statusCode(405);
+    @Order(8)           
+    public void testGetAll10() { // Get all 10 resources
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        Response getResponse = given()
+            .when()
+                .get("");
+
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTransaction time GET 10: " + getResponse.time() + " ms");
+        System.out.printf("CPU Usage (GET 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (GET 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+
     }
 
     @Test
-    public void testPatchNotAllowed() {
-        given()
-        .when()
-            .patch("")
-        .then()
-            .statusCode(405);
+    @Order(9)
+    public void testDelete10() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 4; i < 14; i++) {
+            given()
+                .when()
+                    .delete("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for DELETE 10 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (DELETE 10): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (DELETE 10): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testOptionsProjects() {
-        given()
-        .when()
-            .options("")
-        .then()
-            .statusCode(200)
-            .header("allow", containsString("OPTIONS, GET, HEAD, POST"));
+    @Order(10)   
+    public void testPost100() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < 100; i++) {
+            given()
+                .when()
+                .body("{ \"title\": \"new Projects\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+                    .post("");
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for POST 100 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (POST 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (POST 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testGetSpecificProject() {
-        // Test valid project ID
-        given()
-        .when()
-            .get("/1")
-        .then()
-            .statusCode(200)
-            .body("projects[0].id", equalTo("1"))  // Access the first project in the array
-            .body("projects[0].title", equalTo("New Project"))
-            .body("projects[0].description", equalTo("Description of new project"))
-            .body("projects[0].completed", equalTo("false"))
-            .body("projects[0].active", equalTo("false"));
+    @Order(11)
+    public void testPut100() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 
-        // Test invalid project ID
-        given()
-        .when()
-            .get("/999")
-        .then()
-            .statusCode(404);
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 14; i < 114; i++) {
+            given()
+                .when()
+                .body("{ \"title\": \"Updated Projects\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+                    .put("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for PUT 100 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (PUT 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (PUT 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testPutSpecificProject() {
-        // Test updating a valid project
-        given()
-        .when()
-            .body(projectBody)
-            .put("/1")
-        .then()
-            .statusCode(200)
-            .body("title", equalTo("New Project"))
-            .body("description", equalTo("Description of new project"));
+    @Order(12)
+    public void testGetAll100() { // Get all 100 resources
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 
-        // Test updating an invalid project ID
-        given()
-        .when()
-            .body(projectBody)
-            .put("/999")
-        .then()
-            .statusCode(404);
+        Response getResponse = given()
+            .when()
+                .get("");
+
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTransaction time GET 100: " + getResponse.time() + " ms");
+        System.out.printf("CPU Usage (GET 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (GET 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+
     }
 
     @Test
-    public void testPostToSpecificProject() {
-        // Test posting to a specific project
-        given()
-        .when()
-            .body(projectBody)
-            .post("/1")
-        .then()
-            .statusCode(200)
-            .body("title", equalTo("New Project"))
-            .body("description", equalTo("Description of new project"));
+    @Order(13)   
+    public void testDelete100() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 
-        // Test posting to a non-existent project
-        given()
-        .when()
-            .body(projectBody)
-            .post("/999")
-        .then()
-            .statusCode(404);
-    }
+        long startTime = System.currentTimeMillis();
 
-    @Test
-    public void testOptionsForSpecificProject() {
-        // Test OPTIONS for a specific project
-        given()
-        .when()
-            .options("/1")
-        .then()
-            .statusCode(200)
-            .header("allow", containsString("OPTIONS, GET, HEAD, POST, PUT, DELETE"));
+        for (int i = 14; i < 114; i++) {
+            given()
+                .when()
+                    .delete("/" + i);
+        }
 
-        // Test OPTIONS for a non-existent project
-        given()
-        .when()
-            .options("/999")
-        .then()
-            .statusCode(200) // Still returns 200 because OPTIONS doesn't check existence
-            .header("allow", containsString("OPTIONS, GET, HEAD, POST, PUT, DELETE"));
-    }
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
 
-    @Test
-    public void testGetSpecificProject_XML() {
-        // Test valid project ID
-        given()
-        .accept(ContentType.XML)
-        .when()
-            .get("/1")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.XML)
-            .body(hasXPath("/projects/project/id[text()='1']"))  // Check project ID
-            .body(hasXPath("/projects/project/title[text()='New Project']"))  // Check project title
-            .body(hasXPath("/projects/project/description[text()='Description of new project']"))  // Check project description
-            .body(hasXPath("/projects/project/completed[text()='false']"))  // Check project completed status
-            .body(hasXPath("/projects/project/active[text()='false']"));  // Check project active status
-
-        // Test invalid project ID
-        given()
-        .accept(ContentType.XML)
-        .when()
-            .get("/999")
-        .then()
-            .statusCode(404);  // No need to check body, just ensure 404 is returned
-    }
-
-    @Test
-    public void testPutSpecificProject_XML() {
-        String projectBodyXml = "<project>" +
-            "<title>New Project</title>" +
-            "<description>Description of new project</description>" +
-            "</project>";
-
-        // Test updating a valid project
-        given()
-        .body(projectBodyXml)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .put("/1")
-        .then()
-            .statusCode(200)
-            .body(hasXPath("/project/title[text()='New Project']"))  // Check updated title
-            .body(hasXPath("/project/description[text()='Description of new project']"));  // Check updated description
-
-        // Test updating an invalid project ID
-        given()
-        .body(projectBodyXml)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .put("/999")
-        .then()
-            .statusCode(404);  // No need to check body, just ensure 404 is returned
-    }
-
-    @Test
-    public void testPostToSpecificProject_XML() {
-        String projectBodyXml = "<project>" +
-            "<title>New Project</title>" +
-            "<description>Description of new project</description>" +
-            "</project>";
-
-        // Test posting to a specific project
-        given()
-        .body(projectBodyXml)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .post("/1")
-        .then()
-            .statusCode(200)
-            .body(hasXPath("/project/title[text()='New Project']"))  // Check that the title is "New Project"
-            .body(hasXPath("/project/description[text()='Description of new project']"));  // Check description
-
-        // Test posting to a non-existent project
-        given()
-        .body(projectBodyXml)
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .post("/999")
-        .then()
-            .statusCode(404);  // No need to check body, just ensure 404 is returned
-    }
-
-    @Test
-    public void testHeadForSpecificProject() {
-        // Test HEAD request for an existing project
-        given()
-        .when()
-            .head("/1")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.JSON);
-
-        // Test HEAD request for a non-existent project
-        given()
-        .when()
-            .head("/999")
-        .then()
-            .statusCode(404);
-    }
-
-    @Test
-    public void testPatchMethodNotAllowed() {
-        // Test PATCH method (not allowed)
-        given()
-        .when()
-            .patch("/1")
-        .then()
-            .statusCode(405); // Method not allowed
-    }
-
-    @Test
-    public void testGetAllTasksForProject() {
-        // Test retrieving all tasks (todos) for a specific project
-        given()
-        .when()
-            .get("/3/tasks")
-        .then()
-            .statusCode(200)
-            .body("todos.size()", greaterThan(0))  // Ensure there's at least one todo item
-            .body("todos[0].id", notNullValue())   // Check that the first todo has an id
-            .body("todos[0].title", notNullValue())  // Ensure the todo has a title
-            .body("todos[0].doneStatus", notNullValue()) // Ensure the completion status is present
-            .body("todos[0].tasksof.size()", greaterThan(0))  // Ensure there are related tasks
-            .body("todos[0].tasksof[0].id", notNullValue());  // Check the related task ID
-    }
-
-    @Test
-    public void testGetAllTasksForProject_XML() {
-        // Test retrieving all tasks (todos) for a specific project in XML format
-        given()
-        .accept(ContentType.XML)  // Request XML format
-        .when()
-            .get("/3/tasks")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.XML)  // Ensure the response is in XML format
-            .body(hasXPath("/todos/todo"))  // Ensure that there is at least one <todo> element
-            .body(hasXPath("/todos/todo/id"))  // Ensure that the first <todo> element has an <id>
-            .body(hasXPath("/todos/todo/title"))  // Ensure that the <todo> element has a <title>
-            .body(hasXPath("/todos/todo/doneStatus"));  // Ensure that the <todo> element has a <doneStatus>
-    }
+        System.out.println("\nTotal Time for DELETE 100 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (DELETE 100): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (DELETE 100): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+    }  
 
 
     @Test
-    public void testHeadForTasksForProject() {
-        // Test HEAD request for tasks related to a specific project
-        given()
-        .when()
-            .head("/5/tasks")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.JSON);
+    @Order(14)   
+    public void testPost1000() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < 1000; i++) {
+            given()
+                .when()
+                .body("{ \"title\": \"new Projects\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+                    .post("");
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for POST 1000 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (POST 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (POST 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
     @Test
-    public void testPostTaskRelationshipForProject() {
-        // Test creating a relationship between a project and a task by specifying task id in the body
-        String requestBody = "{" +
-            "\"id\": \"1\"" +
-        "}";
+    @Order(15)
+    public void testPut1000() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 
-        given()
-        .when()
-            .body(requestBody)
-            .contentType(ContentType.JSON)
-            .post("/1/tasks")
-        .then()
-            .statusCode(201);
+        long startTime = System.currentTimeMillis();
 
-        // Test invalid case (Bad Request 400)
-        String invalidRequestBody = "{" +
-            "\"id\": \"invalid-id\"" +  // Invalid task id
-        "}";
+        for (int i = 114; i < 1114; i++) {
+            given()
+                .when()
+                .body("{ \"title\": \"new Projects\", \"completed\": false, \"active\": false, \"description\": \"\" }")
+                    .put("/" + i);
+        }
 
-        given()
-        .when()
-            .body(invalidRequestBody)
-            .contentType(ContentType.JSON)
-            .post("/5/tasks")
-        .then()
-            .statusCode(404)
-            .body("errorMessages", notNullValue());  // Check for error messages in the response
-    }
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
 
-    @Test
-    public void testPostTaskRelationshipForProject_XML() {
-        // Test creating a relationship between a project and a task by specifying task details in XML
-        String requestBodyXml = "<task>" +
-            "<title>new work 3</title>" +
-            "<doneStatus>false</doneStatus>" +
-            "<description></description>" +
-            "<tasksof>" +
-                "<task><id>1</id></task>" +  // Related task id
-            "</tasksof>" +
-        "</task>";
-
-        given()
-        .when()
-            .body(requestBodyXml)  // Use XML format
-            .contentType(ContentType.XML)
-            .accept(ContentType.XML)  // Request response in XML
-            .post("/1/tasks")
-        .then()
-            .statusCode(201);
-
-        // Test invalid case (Bad Request 400) with incorrect task ID
-        String invalidRequestBodyXml = "<task>" +
-            "<title>new work 3</title>" +
-            "<doneStatus>false</doneStatus>" +
-            "<description></description>" +
-            "<tasksof>" +
-                "<task><id>invalid-id</id></task>" +  // Invalid task id
-            "</tasksof>" +
-        "</task>";
-
-        given()
-        .when()
-            .body(invalidRequestBodyXml)  // Use XML format for invalid request
-            .contentType(ContentType.XML)
-            .accept(ContentType.XML)
-            .post("/5/tasks")
-        .then()
-            .statusCode(404)
-            .body(hasXPath("/errorMessages"));  // Check for error messages in the response
-    }
-
-    @Test
-    public void testDeleteTaskRelationshipForProject() {
-        // Test successful deletion of the relationship between project and task
-        given()
-        .when()
-            .delete("/19/tasks/2")
-        .then()
-            .statusCode(200);
-
-        // Test case where the relationship does not exist (Not Found 404)
-        given()
-        .when()
-            .delete("/5/tasks/999")
-        .then()
-            .statusCode(404)
-            .body("errorMessages", notNullValue());  // Check for error messages in the response
-    }
-
-    @Test
-    public void testGetAllCategoriesForProject() {
-        // Test retrieving all categories for a specific project
-        given()
-        .when()
-            .get("/5/categories")
-        .then()
-            .statusCode(200);
-    }
-
-    @Test
-    public void testHeadForCategoriesForProject() {
-        // Test HEAD request for categories related to a specific project
-        given()
-        .when()
-            .head("/5/categories")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.JSON);  // Ensure the content type is JSON
-    }
-
-    @Test
-    public void testPostCategoryRelationshipForProject() {
-        // Test creating a relationship between a project and a category by specifying category id in the body
-        String requestBody = "{" +
-            "\"title\": \"new category\"" +
-        "}";
-
-        given()
-        .when()
-            .body(requestBody)
-            .contentType(ContentType.JSON)
-            .post("/1/categories")
-        .then()
-            .statusCode(201);
-        // Test invalid case (Bad Request 400)
-        String invalidRequestBody = "{" +
-            "\"id\": \"invalid-id\"" +  // Invalid category id
-        "}";
-
-        given()
-        .when()
-            .body(invalidRequestBody)
-            .contentType(ContentType.JSON)
-            .post("/5/categories")
-        .then()
-            .statusCode(404);
-    }
-
-    @Test
-    public void testGetAllCategoriesForProject_XML() {
-        // Test retrieving all categories for a specific project in XML format
-        given()
-        .accept(ContentType.XML)  // Request XML format
-        .when()
-            .get("/1/categories")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.XML); // Ensure the content type is XML
-            //.body(hasXPath("/categories/category"));  // Ensure that at least one <category> is returned
-    }
-
-    @Test
-    public void testHeadForCategoriesForProject_XML() {
-        // Test HEAD request for categories related to a specific project in XML format
-        given()
-        .accept(ContentType.XML)  // Request XML format
-        .when()
-            .head("/5/categories")
-        .then()
-            .statusCode(200)
-            .contentType(ContentType.XML);  // Ensure the content type is XML
-    }
-
-    @Test
-    public void testPostCategoryRelationshipForProject_XML() {
-        // Test creating a relationship between a project and a category by specifying category title in the body (XML)
-        String requestBodyXml = "<category>" +
-            "<title>new category</title>" +
-        "</category>";
-
-        given()
-        .body(requestBodyXml)  // Use XML format
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)  // Request response in XML
-        .when()
-            .post("/1/categories")
-        .then()
-            .statusCode(201);
-
-        // Test invalid case (Bad Request 400) with incorrect category ID
-        String invalidRequestBodyXml = "<category>" +
-            "<id>invalid-id</id>" +  // Invalid category id
-        "</category>";
-
-        given()
-        .body(invalidRequestBodyXml)  // Use XML format for invalid request
-        .contentType(ContentType.XML)
-        .accept(ContentType.XML)
-        .when()
-            .post("/5/categories")
-        .then()
-            .statusCode(404);
+        System.out.println("\nTotal Time for PUT 1000 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (PUT 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (PUT 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 
 
-    @Test
-    public void testDeleteCategory() {
-        // Test successful deletion of a category
-        given()
-        .when()
-            .delete("1/categories/17")
-        .then()
-            .statusCode(200);
 
-        // Test case where the category does not exist (Not Found 404)
-        given()
-        .when()
-            .delete("/categories/999")
-        .then()
-            .statusCode(404)
-            .body("errorMessages", notNullValue());  // Check for error messages in the response
+    @Test
+    @Order(16)
+    public void testGetAll1000() { // Get all 1000 resources
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        Response getResponse = given()
+            .when()
+                .get("");
+
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTransaction time GET 1000: " + getResponse.time() + " ms");
+        System.out.printf("CPU Usage (GET 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (GET 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
+
+    }
+
+    @Test
+    @Order(17)   
+    public void testDelete1000() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 114; i < 1114; i++) {
+            given()
+                .when()
+                    .delete("/" + i);
+        }
+
+        long endTime = System.currentTimeMillis();
+        double endCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long endFreeMemory = osBean.getFreePhysicalMemorySize();
+
+        System.out.println("\nTotal Time for DELETE 1000 requests: " + (endTime - startTime) + " ms");
+        System.out.printf("CPU Usage (DELETE 1000): %.2f%%\n", endCpuLoad);
+        System.out.printf("Free Memory (DELETE 1000): %.2f MB\n", (endFreeMemory) / (1024.0 * 1024.0));
     }
 }
